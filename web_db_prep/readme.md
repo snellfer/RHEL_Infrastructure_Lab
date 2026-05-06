@@ -1,1 +1,0 @@
-These playbooks set up a centralized web content system by sharing a directory from a database server to multiple web servers using NFS.  Any changes made to the files on the DB server will instantly reflect across all Web servers, ensuring consistent content across a load-balanced or distributed environment.
