@@ -1,1 +1,0 @@
-My lab nodes are cloned from master image so "masternew.sh" is a bash script used to prep the master image prior to being cloned. "share_ips.yaml" is a playbook that shares node ips to each node /etc/hosts so they can communicate with each other.
