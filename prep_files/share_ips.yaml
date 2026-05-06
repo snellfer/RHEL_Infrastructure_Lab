@@ -1,0 +1,15 @@
+---
+- name: Map IPs to Names
+  hosts: all
+  become: yes
+  tasks:
+    - name: add nodes to etc/hosts
+      blockinfile:
+        path: /etc/hosts
+        block: |
+          <host_ip>	control_node
+          <host_ip>	web1
+          <host_ip>	web2
+          <host_ip>	web_lb
+          <host_ip>	db
+# not using real ip's on github even though it's just a homelab
