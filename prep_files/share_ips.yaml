@@ -12,4 +12,4 @@
           <host_ip>	web2
           <host_ip>	web_lb
           <host_ip>	db
-	#not using real ip's on github even though it's just a homelab
+# not using real ip's on github even though it's just a homelab
