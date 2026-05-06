@@ -1,0 +1,45 @@
+---
+- name: Create and export directory from db/ set firewall on db
+  hosts: db
+  become: yes
+  tasks:
+    - name: Install NFS
+      dnf:
+        name: nfs-utils
+        state: present
+
+    - name: Start NFS
+      service:
+        name: nfs-server
+        state: started
+        enabled: yes
+    
+    - name: Open firewall
+      firewalld:
+        service: nfs
+        permanent: yes
+        state: enabled
+        immediate: yes
+
+    - name: Create directory to export
+      file:
+        path: /share/nfs
+        state: directory
+        mode: '0777'
+
+    - name: Create index.html file
+      copy:
+        content: "This is the web page for my lab"
+        dest: /share/nfs/index.html
+        mode: '0644'
+
+    - name: Config exports
+      lineinfile:
+        path: /etc/exports
+        line: '/share/nfs *(rw,sync,no_root_squash)'
+      
+    - name: Exportfs
+      command: exportfs -ra
+
+... 
+
