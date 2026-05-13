@@ -1,0 +1,16 @@
+---
+- name: Map IPs to Names
+  hosts: all
+  become: yes
+  tasks:
+    - name: add node ips to all /etc/hosts
+      blockinfile:
+        path: /etc/hosts
+        block: |
+          <ip_addr>	control_node
+          <ip_addr>	web1
+          <ip_addr>	web2
+          <ip_addr>	web_lb
+          <ip_addr>	db
+          <ip_addr>     monitor
+# Having an inventory is good for control_node, but all nodes need to talk to each other

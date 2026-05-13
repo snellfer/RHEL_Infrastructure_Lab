@@ -1,0 +1,56 @@
+---
+# nfs-utils was installed on other nodes but not these yet
+- name: Make sure web_lb and monitor have nfs-utils 
+  hosts: web_lb, monitor
+  become: yes
+  tasks:
+  - name: Install nfs-utils  
+    dnf:
+      name: nfs-utils
+      state: present
+
+- name: Setup a shared logging folder on db
+  hosts: db
+  become: yes
+  tasks:
+  - name: Creating that folder
+    file:
+      path: /share/logs
+      state: directory
+      mode: '0777'
+
+  - name: Enter it into /etc/exports
+    lineinfile:
+      path: /etc/exports
+      line: '/share/logs *(rw,sync,no_root_squash)'
+
+  - name: Export it
+    command: exportfs -ra
+
+# Create the dir to mount the nfs share
+- name: Client logging setup/mounting the nfs share
+  hosts: all
+  become: yes
+  tasks:
+  - name: Create mount point
+    file: 
+      path: /var/log/remote
+      state: directory
+
+  - name: Mount the share from db
+    mount:
+      path: /var/log/remote
+      src: "db:/share/logs"
+      fstype: nfs
+      state: mounted
+
+# Make sure rsyslog on all hosts logs to the nfs share mount
+  - name: Rsyslog needs to log to the share
+    lineinfile:
+      path: /etc/rsyslog.conf
+      line: "*.* /var/log/remote/{{ inventory_hostname }}.log"
+
+  - name: Restart rsyslog
+    service:
+      name: rsyslog
+      state: restarted

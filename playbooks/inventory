@@ -1,0 +1,13 @@
+
+[webservers]
+web1 ansible_host=<ip_addr>
+web2 ansible_host=<ip_addr>
+
+[balancer]
+web_lb ansible_host=<ip_addr>
+
+[db_nfs]
+db ansible_host=<ip_addr>
+
+[monitors]
+monitor ansible_host=<ip_addr>

@@ -1,0 +1,66 @@
+---
+- name: Prepare the webservers
+  hosts: webservers
+  become: yes
+  tasks:
+# Added libsemanage to pkgs to set SELinux Boolean 
+    - name: Install pkgs
+      dnf:
+        name: 
+        - nfs-utils
+        - nginx
+        - python3-libsemanage
+        state: latest
+
+    - name: Ensure firewalld is running
+      service:
+        name: firewalld
+        state: started
+        enabled: yes
+
+    - name: Open the firewall for http traffic
+      firewalld:
+        service: http
+        permanent: yes
+        immediate: yes
+        state: enabled
+
+# "soft,_netdev" are used so webservers don't hang on boot if db isn't up yet
+    - name: Mount the db share to /var/www/html
+      mount:
+        src: db:/share/nfs
+        path: /var/www/html
+        opts: rw,sync,soft,_netdev
+        state: mounted
+        fstype: nfs
+    
+    - name: Force Nginx to use the NFS directory as root
+      lineinfile:
+        path: /etc/nginx/nginx.conf
+        regexp: 'root         /usr/share/nginx/html;'
+        line: '        root         /var/www/html;'
+      notify: Restart Nginx
+
+# Make sure to set those SELinux Boolean or nginx won't read the shared folder
+    - name: Allow Nginx to read from NFS (SELinux)
+      seboolean:
+        name: httpd_use_nfs
+        state: yes
+        persistent: yes
+      notify: Restart Nginx
+
+    - name: Start and enable nginx
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+
+  handlers:
+    - name: Restart Nginx
+      service:
+        name: nginx
+        state: restarted
+
+    
+
+
