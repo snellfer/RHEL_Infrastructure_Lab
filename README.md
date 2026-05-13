@@ -1,7 +1,9 @@
 # RHEL_Infrastructure_Lab
 This is a high-availability Enterprise Linux Lab built on AlmaLinux nodes, fully automated via Ansible.  The environment features a 6-node architecture: a Control Node for orchestration, a Load Balancer distributing traffic to redundant Web Servers, a centralized NFS Storage/DB node for data persistence, and a dedicated Monitor Node running Prometheus and Grafana for real-time observability.  Every component, from package installation, user management, firewall hardening and persistent mounts is handled via Idempotent Playbooks; demonstrating a Security-First, Infrastructure-as-Code (IaC) workflow.
+<pre>
                        [       control_node       ]
                        +--------------------------+
+
 
 
                        |   Ansible Control Node   |
@@ -9,10 +11,12 @@ This is a high-availability Enterprise Linux Lab built on AlmaLinux nodes, fully
                        +------------+-------------+
 
 
+
                                     |
                                     | (SSH / Ansible Automation)
                                     v
 +---------------------------------------------------------------------------------+
+
 
 
 |                                 VIRTUAL NETWORK                                 |
@@ -46,3 +50,4 @@ This is a high-availability Enterprise Linux Lab built on AlmaLinux nodes, fully
 |                                 |    (Port 3000 View)|                          |
 |                                 +--------------------+                          |
 +---------------------------------------------------------------------------------+
+</pre>
