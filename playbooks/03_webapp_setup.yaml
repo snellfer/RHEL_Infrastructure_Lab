@@ -38,7 +38,7 @@
       lineinfile:
         path: /etc/nginx/nginx.conf
         regexp: 'root         /usr/share/nginx/html;'
-        line: '        root         /var/www/html;'
+        line: 'root         /var/www/html;'
       notify: Restart Nginx
 
 # Make sure to set those SELinux Boolean or nginx won't read the shared folder
