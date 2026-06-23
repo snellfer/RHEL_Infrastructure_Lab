@@ -24,7 +24,7 @@ This is a high-availability Enterprise Linux Lab built on AlmaLinux nodes, fully
 |  +--------------------+   +--------------------+   +--------------------+       |
 |  |        web1        |   |        web2        |   |       web_lb       |       |
 |  | AlmaLinux 9 Target |   | AlmaLinux 9 Target |   | AlmaLinux 9 Target |       |
-|  |  - Nginx Web Server|   |  - Nginx Web Server|   |  - Traffic Routing |       |
+|  |  - Nginx Web Server|   |  - Nginx Web Server|   |  - HAProxy         |       |
 |  |  - Rsyslog Client  |   |  - Rsyslog Client  |   |  - Rsyslog Client  |       |
 |  +--------+-----------+   +--------+-----------+   +---------+----------+       |
 |           |                        |                         |                  |
