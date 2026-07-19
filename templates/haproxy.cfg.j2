@@ -1,0 +1,15 @@
+defaults
+    mode http
+    timeout connect 5000ms
+    timeout client 50000ms
+    timeout server 50000ms
+
+frontend my-frontend
+    bind *:80
+    default_backend my-web-nodes
+
+backend my-web-nodes
+    balance roundrobin
+    server web1 {{ hostvars['web1']['ansible_default_ipv4']['address'] }}:80 check
+    server web2 {{ hostvars['web2']['ansible_default_ipv4']['address'] }}:80 check
+

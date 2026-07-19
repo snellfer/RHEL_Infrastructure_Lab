@@ -1,0 +1,119 @@
+---
+# You must install node-exporter on all nodes but it's in epel-release
+- name: Install Exporters on Every Node
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install epel
+      dnf:
+        name: epel-release
+        state: present
+
+    - name: Install node-exporter
+      dnf:
+        name: node-exporter
+        state: latest
+
+    - name: Open Firewall 9100
+      firewalld:
+        port: 9100/tcp
+        permanent: yes
+        state: enabled
+        immediate: yes
+
+    - name: Start exporter
+      service:
+        name: node_exporter
+        state: started
+        enabled: yes
+
+# Need to setup grafana repo
+- name: Setup monitoring node
+  hosts: monitors
+  become: yes
+  tasks:
+    - name: Setup Grafana Repo
+      copy:
+        dest: /etc/yum.repos.d/grafana.repos
+        content: |
+          [grafana]
+          name=grafana
+          baseurl=https://rpm.grafana.com
+          repo_gpgcheck=1
+          enabled=1
+          gpgcheck=1
+          gpgkey=https://grafana.com/gpg.key
+      
+    - name: Install the pkgs
+      dnf:
+        name:
+        - grafana
+        - prometheus
+        state: latest
+
+# Open up the ports that Grafana and Prometheus use...
+    - name: Open the firewall
+      firewalld:
+        port: "{{ item }}"
+        permanent: yes
+        state: enabled
+        immediate: yes
+      loop:
+        - 3000/tcp
+        - 9090/tcp
+
+# Two tasks need to be done here or SELinux will give you problems 
+    - name: Allow Grafana to connect to Prometheus (SELinux)
+      ansible.posix.seboolean:
+        name: httpd_can_network_connect
+        state: yes
+        persistent: yes
+
+    - name: Allow Prometheus to listen on non-standard port 9090
+      community.general.seport:
+        ports: "9090"
+        proto: tcp
+        setype: http_port_t
+        state: present
+
+# Originally tried using the template using user root (wrong) but after hours had to go # with a copy module.  Will update this in the future back to template.        
+    - name: Update Prometheus configuration with custom node names
+      ansible.builtin.copy:
+        dest: /etc/prometheus/prometheus.yml
+        content: |
+          global:
+            scrape_interval: 15s
+          scrape_configs:
+            - job_name: 'prometheus'
+              static_configs:
+                - targets: ['localhost:9090']
+            - job_name: 'nodes'
+              static_configs:
+                - targets:
+                  - 'web1:9100'
+                  - 'web2:9100'
+                  - 'db:9100'
+                  - 'web_lb:9100'
+                  - 'monitor:9100'
+      notify: Restart Prometheus
+
+    - name: Reload systemd config
+      systemd:
+        daemon_reload: yes
+
+    - name: Start and enable services
+      service:
+        name: "{{ item }}"
+        state: started
+        enabled: yes
+      loop:
+      - grafana-server
+      - prometheus
+      - node_exporter
+  
+  handlers:
+    - name: Restart Prometheus
+      ansible.builtin.service:
+        name: prometheus
+        state: restarted
+

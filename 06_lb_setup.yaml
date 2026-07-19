@@ -1,0 +1,60 @@
+---
+- name: Setting up HAProxy
+  hosts: web_lb
+  become: yes
+  tasks:
+  - name: Install necessary pkgs
+    dnf:
+      name: 
+      - haproxy
+      - python3-libsemanage
+      state: present
+
+# Have ansible gather some facts here so it can fill in your template
+  - name: Force-gather facts from web nodes
+    setup:
+    delegate_to: "{{ item }}"
+    delegate_facts: true
+    loop:
+      - web1
+      - web2
+
+# resist the urge to use <user>, the tasks become root so it should match here 
+  - name: Copy template to HAProxy config file
+    template:
+      src: templates/haproxy.cfg.j2
+      dest: /etc/haproxy/haproxy.cfg
+      owner: root
+      group: root
+      mode: '0644'
+    notify: restart haproxy
+
+# SELinux and firewalld need to allow haproxy to connect
+  - name: Set SELinux boolean to allow haproxy to connect 
+    seboolean:
+      name: haproxy_connect_any
+      state: yes
+      persistent: yes
+  
+  - name: Allow http traffic in firewalld
+    firewalld:
+      service: http
+      permanent: yes
+      immediate: yes
+      state: enabled
+  
+  - name: Start HAProxy and enable it to start on boot
+    service:
+      name: haproxy
+      state: started
+      enabled: yes
+
+  handlers:
+    - name: restart haproxy
+      service:
+        name: haproxy
+        state: restarted
+      become: yes
+
+
+

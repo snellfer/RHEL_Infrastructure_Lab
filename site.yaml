@@ -1,0 +1,12 @@
+---
+- name: Master Rollout - 3-Tier Linux Infrastructure
+  hosts: all
+  become: yes
+
+- import_playbook: 01_share_ips.yaml
+- import_playbook: 02_db_export.yaml
+- import_playbook: 03_webapp_setup.yaml
+- import_playbook: 04_central_logging.yaml
+- import_playbook: 05_monitor_setup.yaml
+- import_playbook: 06_lb_setup.yaml
+
