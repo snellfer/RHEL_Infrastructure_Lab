@@ -1,12 +1,13 @@
 ---
 # nfs-utils was installed on other nodes but not these yet
-- name: Make sure web_lb and monitor have nfs-utils 
-  hosts: web_lb, monitor
+- name: Make sure they have the right pkgs 
+  hosts: all
   become: yes
   tasks:
-  - name: Install nfs-utils  
+  - name: Install nfs and semanage packages  
     dnf:
-      name: nfs-utils
+      name:
+        - nfs-utils
       state: present
 
 - name: Setup a shared logging folder on db
@@ -42,14 +43,18 @@
       path: /var/log/remote
       src: "db:/share/logs"
       fstype: nfs
+      opts: 'defaults,context="system_u:object_r:var_log_t:s0"'
       state: mounted
+    when: inventory_hostname != 'db'
+   
 
 # Make sure rsyslog on all hosts logs to the nfs share mount
-  - name: Rsyslog needs to log to the share
+  - name: Rsyslog needs to stream logs across the network to db
     lineinfile:
       path: /etc/rsyslog.conf
+      regexp: '^\*\.\*\s+.*'
       line: "*.* /var/log/remote/{{ inventory_hostname }}.log"
-
+      
   - name: Restart rsyslog
     service:
       name: rsyslog
