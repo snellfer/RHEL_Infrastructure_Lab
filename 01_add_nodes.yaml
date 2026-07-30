@@ -1,10 +1,10 @@
 ---
-# Run this playbook with the options listed in msg below
+# Run this playbook with the args -e newhost=<hostname> -e newhostip=<ip_addr>
 - name: Add a new node and config it for ansible
   hosts: localhost
   tasks: 
   - fail:
-      msg: "add the options -e newhost=<hostname> -e newhostip=<ip_addr> and try again"
+      msg: "add the args -e newhost=<hostname> -e newhostip=<ip_addr> and try again"
     when: (newhost is undefined) or (newhostip is undefined)
   - name: add new host to inventory
     lineinfile:

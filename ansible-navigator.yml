@@ -1,0 +1,14 @@
+---
+ansible-navigator:
+  execution-environment:
+    container-engine: podman
+    enabled: false
+    image: quay.io/ansible/creator-ee:v0.6.0
+    pull:
+      policy: missing
+
+ # Shut down all logging and artifact creation
+  logging:
+    level: critical
+  playbook-artifact:
+    enable: false
