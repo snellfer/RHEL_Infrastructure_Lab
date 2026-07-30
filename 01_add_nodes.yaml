@@ -1,16 +1,53 @@
 ---
-- name: Map IPs to Names
-  hosts: all
-  become: yes
-  tasks:
-    - name: add node ips to all /etc/hosts
-      blockinfile:
-        path: /etc/hosts
-        block: |
-          <ip_addr>	control_node
-          <ip_addr>	web1
-          <ip_addr>	web2
-          <ip_addr>	web_lb
-          <ip_addr>	db
-          <ip_addr> monitor
-# Having an inventory is good for control_node, but all nodes need to talk to each other
+# Run this playbook with the options listed in msg below
+- name: Add a new node and config it for ansible
+  hosts: localhost
+  tasks: 
+  - fail:
+      msg: "add the options -e newhost=<hostname> -e newhostip=<ip_addr> and try again"
+    when: (newhost is undefined) or (newhostip is undefined)
+  - name: add new host to inventory
+    lineinfile:
+      path: inventory
+      state: present
+      insertafter: '^\[nodes\]'
+      line: "{{ newhost }}  ansible_host={{ newhostip }}"
+  - name: add new host to /etc/hosts
+    lineinfile:
+      path: /etc/hosts
+      state: present
+      line: "{{ newhostip }}  {{ newhost }}"
+  - name: Dynamically add the new node to the live running memory
+    add_host:
+      name: "{{ newhost }}"
+      ansible_host: "{{ newhostip }}"
+      groups: nodes
+  tags: addhost
+  
+- name: Config new AlmaLinux node
+  hosts: "{{ newhost }}"
+  remote_user: root
+  become: false
+  tasks: 
+  - name: Config user ansible
+    user:
+      name: ansible
+      groups: wheel
+      append: yes
+      state: present
+
+  - name: enable sudo without passwds 
+    lineinfile:
+      path: /etc/sudoers.d/ansible
+      state: present
+      create: yes
+      mode: '0440'
+      line: 'ansible ALL=(ALL) NOPASSWD: ALL'
+      validate: /usr/sbin/visudo -cf %s
+     
+  - name: copy SSH public key to remote host
+    authorized_key:
+      user: ansible
+      state: present
+      key: "{{ lookup('file', '/home/ansible/.ssh/id_rsa.pub') }}"
+  tags: setuphost
