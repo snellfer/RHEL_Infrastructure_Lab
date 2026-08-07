@@ -1,4 +1,6 @@
 ---
+# This is to add additional nodes, on the first run I cloned a master image vm for each node.
+
 # Run this playbook with the args -e newhost=<hostname> -e newhostip=<ip_addr>
 - name: Add a new node and config it for ansible
   hosts: localhost
